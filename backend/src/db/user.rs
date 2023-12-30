@@ -76,8 +76,8 @@ impl UserModel {
     pub async fn get_paginated_data(
         &self,
         search: Option<String>,
-        page: Option<usize>,
-        limit: Option<usize>,
+        page: Option<u32>,
+        limit: Option<u32>,
     ) -> Result<Vec<Document>> {
         let search = search.unwrap_or_default();
         let page = page.unwrap_or(1);
@@ -103,8 +103,8 @@ impl UserModel {
                     doc! {
                         "$facet": {
                             "data": [
-                                {"$skip": ((page - 1) * limit).to_string()},
-                                {"$limit": limit.to_string()},
+                                {"$skip": (page - 1) * limit},
+                                {"$limit": limit},
                             ],
                             "count": [
                                 {
