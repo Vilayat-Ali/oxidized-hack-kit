@@ -9,11 +9,35 @@ use serde::{Deserialize, Serialize};
 use std::default::Default;
 
 #[derive(Serialize, Deserialize)]
+pub struct JWTUserPayload {
+    pub name: UserName,
+    pub email: String,
+    pub role: Role,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct User {
     pub name: UserName,
     pub email: String,
     pub role: Role,
     pub password: String,
+}
+
+impl From<User> for JWTUserPayload {
+    fn from(
+        User {
+            name, email, role, ..
+        }: User,
+    ) -> Self {
+        Self {
+            name: UserName {
+                first: name.first,
+                last: name.last,
+            },
+            email,
+            role,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

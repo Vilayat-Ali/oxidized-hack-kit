@@ -24,6 +24,7 @@ async fn main() -> Result<(), io::Error> {
         .layer(trace)
         .layer(cors);
 
+    // Router
     let app = Router::new()
         .nest("/api", ApiRoutes::get_routes())
         .layer(middlewares);
