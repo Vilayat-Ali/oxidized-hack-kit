@@ -1,26 +1,49 @@
 use futures::stream::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
-    error::Result,
+    error,
     results::{DeleteResult, InsertOneResult},
     Collection, Database,
 };
 use serde::{Deserialize, Serialize};
 use std::default::Default;
 
-#[derive(Serialize, Deserialize)]
+use crate::utils::hash::BcryptHash;
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct JWTUserPayload {
     pub name: UserName,
     pub email: String,
     pub role: Role,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct User {
     pub name: UserName,
     pub email: String,
     pub role: Role,
     pub password: String,
+}
+
+impl User {
+    pub fn new(
+        first_name: String,
+        last_name: String,
+        email: String,
+        role: Option<Role>,
+        password: String,
+    ) -> Result<Self, bcrypt::BcryptError> {
+        let hashed_password = BcryptHash::hash_string(password)?;
+        Ok(Self {
+            name: UserName {
+                first: first_name,
+                last: last_name,
+            },
+            email,
+            role: role.unwrap_or_default(),
+            password: hashed_password,
+        })
+    }
 }
 
 impl From<User> for JWTUserPayload {
@@ -40,13 +63,13 @@ impl From<User> for JWTUserPayload {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UserName {
     pub first: String,
     pub last: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Role {
     Admin,
     User,
@@ -69,7 +92,7 @@ impl UserModel {
         }
     }
 
-    pub async fn create(&self, user_instance: &User) -> Result<InsertOneResult> {
+    pub async fn create(&self, user_instance: &User) -> error::Result<InsertOneResult> {
         self.collection.insert_one(user_instance, None).await
     }
 
@@ -78,7 +101,7 @@ impl UserModel {
         search: Option<String>,
         page: Option<u32>,
         limit: Option<u32>,
-    ) -> Result<Vec<Document>> {
+    ) -> error::Result<Vec<Document>> {
         let search = search.unwrap_or_default();
         let page = page.unwrap_or(1);
         let limit = limit.unwrap_or(20);
@@ -121,13 +144,17 @@ impl UserModel {
         Ok(result)
     }
 
-    pub async fn update(&self, doc: Document, updated_doc: Document) -> Result<Option<User>> {
+    pub async fn update(
+        &self,
+        doc: Document,
+        updated_doc: Document,
+    ) -> error::Result<Option<User>> {
         self.collection
             .find_one_and_update(doc, updated_doc, None)
             .await
     }
 
-    pub async fn delete(&self, doc: Document) -> Result<DeleteResult> {
+    pub async fn delete(&self, doc: Document) -> error::Result<DeleteResult> {
         self.collection.delete_one(doc, None).await
     }
 }

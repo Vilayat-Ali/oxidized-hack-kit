@@ -9,7 +9,7 @@ pub struct AuthRoutes;
 impl AuthRoutes {
     pub fn get_routes() -> Router {
         Router::new()
-            .route("/register", post(register_handler()))
-            .route("/login", post(login_handler()))
+            .route("/register", post(register_handler))
+            .route("/login", post(login_handler))
     }
 }

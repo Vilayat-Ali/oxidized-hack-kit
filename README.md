@@ -1,9 +1,13 @@
 # Oxidized Hackathon Kit
 
 ## Tech Stack
+- [Bun.js](https://bun.sh/)
 - [Axum](https://github.com/tokio-rs/axum)
 - [MongoDB](https://www.mongodb.com)
-- [Svelte.js](https://www.svelte.dev)
+- [React.js](https://www.react.dev)
+
+## Features
+
 
 ## Getting Stated
 
