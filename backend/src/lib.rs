@@ -8,9 +8,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ENV {
-    port: u16,
-    mongo_uri: String,
-    jwt_secret: String,
+    pub rust_log: String,
+    pub port: u16,
+    pub mongo_uri: String,
+    pub jwt_secret: String,
 }
 
 impl ENV {

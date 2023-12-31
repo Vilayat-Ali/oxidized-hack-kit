@@ -10,7 +10,7 @@ use std::default::Default;
 
 use crate::utils::hash::BcryptHash;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct JWTUserPayload {
     pub name: UserName,
     pub email: String,
@@ -63,13 +63,13 @@ impl From<User> for JWTUserPayload {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct UserName {
     pub first: String,
     pub last: String,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum Role {
     Admin,
     User,
