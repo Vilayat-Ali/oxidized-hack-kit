@@ -54,7 +54,7 @@ async fn main() -> Result<(), io::Error> {
     // Router
     let app = Router::new()
         .nest("/api", ApiRoutes::get_routes())
-        .with_state(ctx)
+        .with_state(())
         .layer(middlewares);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
