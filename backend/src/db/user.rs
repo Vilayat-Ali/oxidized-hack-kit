@@ -115,6 +115,17 @@ impl UserModel {
         self.collection.insert_one(user_instance, None).await
     }
 
+    pub async fn get_one(&self, email: &String) -> error::Result<Option<User>> {
+        self.collection
+            .find_one(
+                doc! {
+                    "email": email
+                },
+                None,
+            )
+            .await
+    }
+
     pub async fn get_paginated_data(
         &self,
         search: Option<String>,

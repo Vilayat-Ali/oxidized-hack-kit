@@ -1,5 +1,6 @@
 pub mod db;
 pub mod middlewares;
+pub mod response;
 pub mod routes;
 pub mod utils;
 
@@ -42,9 +43,4 @@ impl AppState {
             user: None,
         }
     }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Response {
-    status_code: u16,
 }
