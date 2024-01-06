@@ -1,11 +1,14 @@
+use std::sync::Arc;
+
 use crate::{
-    db::user::{Role, UserName},
+    db::user::{Role, UserName, UserReqPayload},
     utils::jwt::JWT,
+    AppState,
 };
-use axum::extract::Json;
+use axum::extract::{Json, State};
 use serde::{Deserialize, Serialize};
 
-use crate::db::user::{JWTUserPayload, User};
+use crate::db::user::{User, UserModel};
 
 #[derive(Serialize, Deserialize)]
 pub struct AuthSuccessResponse {
@@ -22,32 +25,30 @@ pub struct AuthErrorResponse {
 }
 
 pub async fn register_handler(
-    Json(req_payload): Json<User>,
+    State(state): State<Arc<AppState>>,
+    Json(req_payload): Json<UserReqPayload>,
 ) -> Result<Json<AuthSuccessResponse>, Json<AuthErrorResponse>> {
-    match JWT::generate_token(&JWTUserPayload::from(req_payload.clone())) {
+    let user = User::from(req_payload.clone());
+    match JWT::generate_token(&user) {
         Ok(access_token) => {
             let User {
                 name,
                 email,
                 role,
                 password,
-            } = req_payload;
+            } = user;
             // save user to database
             match User::new(name.first, name.last, email, Some(role), password) {
-                Ok(User {
-                    name,
-                    email,
-                    role,
-                    password,
-                }) => {
+                Ok(user_instance) => {
                     // store user in the database
-                    unimplemented!();
+                    let model = UserModel::new(&state.mongo_instance.db);
+                    model.create(&user_instance).await.unwrap();
 
                     // return response
                     return Ok(Json(AuthSuccessResponse {
-                        name,
-                        email,
-                        role,
+                        name: user_instance.name.clone(),
+                        email: user_instance.email.clone(),
+                        role: user_instance.role.clone(),
                         access_token,
                     }));
                 }

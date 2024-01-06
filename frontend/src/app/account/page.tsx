@@ -9,12 +9,18 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Signup from "./forms/Signup";
 import Login from "./forms/Login";
 
+// ICONS
+import { FaBurn } from "react-icons/fa";
+
 const page = () => {
   return (
     <div className="flex flex-row justify-start items-center w-[100vw] h-[100vh] overflow-hidden">
       {/* Image */}
-      <div className="relative hidden md:block w-[50vw] h-[100%] shadow">
-        <Image src="/next.svg" fill={true} alt="image" priority />
+      <div className="relative hidden md:flex w-[50vw] h-[100%] shadow items-center justify-center bg-black text-white flex-col">
+        {/* UNCOMMENT BELOW TO HAVE IMAGE  */}
+        {/* <Image src="/next.svg" fill={true} alt="image" priority /> */}
+        <FaBurn className="text-[10vw]" />
+        <h1 className="my-5 text-2xl font-bold">Build Your App</h1>
       </div>
       {/* Image */}
 

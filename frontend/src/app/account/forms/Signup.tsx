@@ -1,7 +1,10 @@
+"use client";
+
 // lib
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import axios from "axios";
 
 // components
 import { Button } from "@/components/ui/button";
@@ -21,6 +24,9 @@ import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
 // hooks
 import useToggle from "@/hooks/useToggle";
+
+// Req
+import { QueryMaker } from "@/utils/axios";
 
 const Signup = () => {
   const { toast } = useToast();
@@ -44,12 +50,27 @@ const Signup = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof SignUpSchema>) => {
-    // toast({
-    //   title: "Scheduled: Catch up",
-    //   description: "Friday, February 10, 2023 at 5:57 PM",
-    // });
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof SignUpSchema>) => {
+    try {
+      const { first, last, email, password } = values;
+      const { data } = await axios.post(
+        "http://localhost:8000/api/auth/register",
+        {
+          name: { first, last },
+          email,
+          password,
+        }
+      );
+      console.log(data);
+      window.localStorage.setItem("token", data.access_token);
+      toast({
+        title: "User added successfully!",
+      });
+    } catch (err: any) {
+      toast({
+        title: err.message,
+      });
+    }
   };
 
   const [showPassword, TogglePasswordVisibility] = useToggle();
@@ -122,7 +143,11 @@ const Signup = () => {
                       {...field}
                     />
                   </FormControl>
-                  <Button variant="outline" onClick={TogglePasswordVisibility}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={TogglePasswordVisibility}
+                  >
                     {showPassword ? <MdVisibilityOff /> : <MdVisibility />}
                   </Button>
                 </div>
@@ -148,6 +173,7 @@ const Signup = () => {
                     />
                   </FormControl>
                   <Button
+                    type="button"
                     variant="outline"
                     onClick={ToggleConfirmPasswordVisibility}
                   >

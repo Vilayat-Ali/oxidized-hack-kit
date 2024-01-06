@@ -3,6 +3,7 @@ pub mod middlewares;
 pub mod routes;
 pub mod utils;
 
+use crate::db::{user::JWTUserPayload, Mongo};
 use envy::from_env;
 use serde::{Deserialize, Serialize};
 
@@ -26,4 +27,24 @@ impl ENV {
         // execution.
         from_env::<ENV>().unwrap()
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct AppState {
+    pub mongo_instance: Mongo,
+    pub user: Option<JWTUserPayload>,
+}
+
+impl AppState {
+    pub fn new(mongo_instance: Mongo) -> Self {
+        Self {
+            mongo_instance,
+            user: None,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Response {
+    status_code: u16,
 }

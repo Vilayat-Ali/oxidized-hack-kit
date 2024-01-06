@@ -1,3 +1,5 @@
+"use client";
+
 // lib
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -82,7 +84,11 @@ const Login = () => {
                       {...field}
                     />
                   </FormControl>
-                  <Button variant="outline" onClick={TogglePasswordVisibility}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={TogglePasswordVisibility}
+                  >
                     {showPassword ? <MdVisibilityOff /> : <MdVisibility />}
                   </Button>
                 </div>

@@ -7,10 +7,10 @@ import axios, { AxiosRequestConfig } from "axios";
 import { config } from "@/env";
 
 export class QueryMaker {
-  private endpoint: string = config.SERVER_URL;
-  private JWT_Token: string = this.lookForJWT();
+  private static endpoint: string = config.SERVER_URL;
+  private static JWT_Token: string = this.lookForJWT();
 
-  private lookForJWT(): string {
+  private static lookForJWT(): string {
     if (window) {
       const token: string | null = window.localStorage.getItem("JWT");
 
@@ -21,7 +21,7 @@ export class QueryMaker {
     return "";
   }
 
-  public async Fetch<T>(route: string): Promise<T> {
+  public static async Fetch<T>(route: string): Promise<T> {
     try {
       const { data } = await axios.get(this.endpoint.concat(route), {
         headers: {
@@ -34,7 +34,7 @@ export class QueryMaker {
     }
   }
 
-  public async Mutate<P, R>(
+  public static async Mutate<P, R>(
     route: string,
     req_body: P & AxiosRequestConfig<P>,
     Method: "post" | "put" | "delete" = "post"

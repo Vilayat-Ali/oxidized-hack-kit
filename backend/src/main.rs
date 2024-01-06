@@ -6,22 +6,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 
-use backend::{db::user::JWTUserPayload, db::Mongo, routes::ApiRoutes, ENV};
-
-#[derive(Clone, Debug)]
-pub struct AppState {
-    pub mongo_instance: Mongo,
-    pub user: Option<JWTUserPayload>,
-}
-
-impl AppState {
-    fn new(mongo_instance: Mongo) -> Self {
-        Self {
-            mongo_instance,
-            user: None,
-        }
-    }
-}
+use backend::{db::user::JWTUserPayload, db::Mongo, routes::ApiRoutes, AppState, ENV};
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
@@ -42,20 +27,20 @@ async fn main() -> Result<(), io::Error> {
     let ctx = Arc::new(AppState::new(mongo_ctx));
 
     // middlewares
-    let cors = CorsLayer::new().allow_origin(Any);
+    let cors = CorsLayer::new()
+        .allow_headers(tower_http::cors::Any)
+        .allow_methods(tower_http::cors::Any)
+        .allow_origin(tower_http::cors::Any);
     let compression = CompressionLayer::new().gzip(true);
     let trace = TraceLayer::new_for_http();
-
-    let middlewares = ServiceBuilder::new()
-        .layer(compression)
-        .layer(trace)
-        .layer(cors);
 
     // Router
     let app = Router::new()
         .nest("/api", ApiRoutes::get_routes())
-        .with_state(())
-        .layer(middlewares);
+        .layer(cors)
+        .layer(trace)
+        .layer(compression)
+        .with_state(ctx);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
     axum::serve(listener, app).await?;

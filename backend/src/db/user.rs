@@ -25,6 +25,25 @@ pub struct User {
     pub password: String,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct UserReqPayload {
+    pub name: UserName,
+    pub email: String,
+    pub role: Option<Role>,
+    pub password: String,
+}
+
+impl From<UserReqPayload> for User {
+    fn from(value: UserReqPayload) -> Self {
+        Self {
+            name: value.name,
+            role: value.role.unwrap_or_default(),
+            email: value.email,
+            password: value.password,
+        }
+    }
+}
+
 impl User {
     pub fn new(
         first_name: String,
