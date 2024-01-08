@@ -1,12 +1,11 @@
 use axum::Router;
 use std::io;
 use std::sync::Arc;
-use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
-use backend::{db::user::JWTUserPayload, db::Mongo, routes::ApiRoutes, AppState, ENV};
+use backend::{db::Mongo, routes::ApiRoutes, AppState, ENV};
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
