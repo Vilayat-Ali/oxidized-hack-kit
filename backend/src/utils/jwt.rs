@@ -9,8 +9,9 @@ impl JWT {
     // generating JWT Token
     pub fn generate_token<T>(payload: &T) -> Result<String>
     where
-        T: Serialize + DeserializeOwned,
+        T: Serialize + DeserializeOwned + std::fmt::Debug,
     {
+        println!("{:#?}", payload);
         encode(
             &Header::default(),
             payload,
@@ -19,7 +20,7 @@ impl JWT {
     }
 
     // validating JWT Token
-    pub fn validate_token<T>(token: &String) -> Result<T>
+    pub fn validate_token<T>(token: &str) -> Result<T>
     where
         T: Serialize + DeserializeOwned,
     {

@@ -4,9 +4,14 @@ pub mod response;
 pub mod routes;
 pub mod utils;
 
+pub type Ctx = Arc<Mutex<AppState>>;
+
+use std::sync::Arc;
+
 use crate::db::{user::JWTUserPayload, Mongo};
 use envy::from_env;
 use serde::{Deserialize, Serialize};
+use tokio::sync::Mutex;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ENV {
@@ -26,7 +31,13 @@ impl ENV {
         // a serious issue, it is relatively safer to panic out from
         // the program rather safely handling it and keep program in
         // execution.
-        from_env::<ENV>().unwrap()
+        match from_env::<ENV>() {
+            Ok(env) => env,
+            Err(e) => {
+                tracing::error!("Invalid env variable configuration. {}", e);
+                panic!("{}", e);
+            }
+        }
     }
 }
 

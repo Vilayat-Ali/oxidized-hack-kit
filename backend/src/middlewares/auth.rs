@@ -1,23 +1,42 @@
-use crate::{db::user::JWTUserPayload, utils::jwt::JWT};
-use axum::{extract::Request, middleware::Next, response::Response};
+use crate::{db::user::JWTUserPayload, utils::jwt::JWT, Ctx};
+use axum::{
+    extract::{Request, State},
+    http::StatusCode,
+    middleware::Next,
+    response::Response,
+};
 
-pub async fn auth_middleware(request: Request, next: Next) -> Response {
-    let token = request.headers().get("authorization");
+pub async fn auth_middleware(State(state): State<Ctx>, request: Request, next: Next) -> Response {
+    let token = request.headers().get("Authorization");
 
     if let Some(jwt_token) = token {
-        if jwt_token.is_empty() {
-            // token not provided
+        let token = jwt_token
+            .to_str()
+            .unwrap_or_default()
+            .to_owned()
+            .split(' ')
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>();
+
+        match JWT::validate_token::<JWTUserPayload>(&token[1]) {
+            Ok(user_data) => {
+                {
+                    let mut user_in_state = state.lock().await;
+                    user_in_state.user = Some(user_data);
+                }
+                return next.run(request).await;
+            }
+            Err(_e) => {
+                return Response::builder()
+                    .status(StatusCode::FORBIDDEN)
+                    .body("Auth token expired or invalid".into())
+                    .unwrap();
+            }
         }
+    }
 
-        match JWT::validate_token::<JWTUserPayload>(
-            &jwt_token.to_str().unwrap_or_default().to_owned(),
-        ) {
-            Ok(user_data) => todo!(),
-            Err(e) => todo!(),
-        }
-    };
-
-    // headers not passed
-
-    next.run(request).await
+    return Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .body("`Authorization` headers not set before request was sent".into())
+        .unwrap();
 }

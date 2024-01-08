@@ -1,3 +1,5 @@
+use crate::utils::hash::BcryptHash;
+use chrono::{Duration, Utc};
 use futures::stream::TryStreamExt;
 use mongodb::{
     bson::{doc, Document},
@@ -8,13 +10,24 @@ use mongodb::{
 use serde::{Deserialize, Serialize};
 use std::default::Default;
 
-use crate::utils::hash::BcryptHash;
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct JWTUserPayload {
     pub name: UserName,
     pub email: String,
     pub role: Role,
+    pub exp: usize,
+}
+
+impl JWTUserPayload {
+    pub fn new(name: UserName, email: String, role: Option<Role>) -> Self {
+        let current_time = Utc::now();
+        Self {
+            name,
+            email,
+            role: role.unwrap_or_default(),
+            exp: (current_time + Duration::days(7)).timestamp() as usize,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -66,18 +79,13 @@ impl User {
 }
 
 impl From<User> for JWTUserPayload {
-    fn from(
-        User {
-            name, email, role, ..
-        }: User,
-    ) -> Self {
-        Self {
-            name: UserName {
-                first: name.first,
-                last: name.last,
-            },
-            email,
-            role,
+    fn from(val: User) -> Self {
+        let current_time = Utc::now();
+        JWTUserPayload {
+            name: val.name,
+            email: val.email,
+            role: val.role,
+            exp: (current_time + Duration::days(7)).timestamp() as usize,
         }
     }
 }

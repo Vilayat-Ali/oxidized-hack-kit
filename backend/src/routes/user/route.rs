@@ -1,8 +1,10 @@
-use crate::{
-    db::user::{Role, UserName},
-    utils::jwt::JWT,
-};
-use axum::extract::Json;
-use serde::{Deserialize, Serialize};
+use axum::extract::State;
 
-use crate::db::user::{JWTUserPayload, User};
+use crate::Ctx;
+
+pub async fn get_user(State(state): State<Ctx>) -> String {
+    match state.lock().await.user.as_ref() {
+        Some(user) => user.email.clone(),
+        None => "No value".to_string(),
+    }
+}

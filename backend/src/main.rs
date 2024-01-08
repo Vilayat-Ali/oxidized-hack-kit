@@ -1,6 +1,8 @@
 use axum::Router;
 use std::io;
 use std::sync::Arc;
+use tokio::sync::Mutex;
+use tower::ServiceBuilder;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -22,9 +24,6 @@ async fn main() -> Result<(), io::Error> {
         .await
         .expect("Failed to connect to database...");
 
-    // setting app state
-    let ctx = Arc::new(AppState::new(mongo_ctx));
-
     // middlewares
     let cors = CorsLayer::new()
         .allow_headers(tower_http::cors::Any)
@@ -33,15 +32,19 @@ async fn main() -> Result<(), io::Error> {
     let compression = CompressionLayer::new().gzip(true);
     let trace = TraceLayer::new_for_http();
 
+    // setting app state
+    let ctx = Arc::new(Mutex::new(AppState::new(mongo_ctx)));
+
     // Router
     let app = Router::new()
-        .nest("/api", ApiRoutes::get_routes())
+        .nest("/api", ApiRoutes::get_routes(Arc::clone(&ctx)))
+        .layer(ServiceBuilder::new().layer(trace).layer(compression))
         .layer(cors)
-        .layer(trace)
-        .layer(compression)
-        .with_state(ctx);
+        .with_state(Arc::clone(&ctx));
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await?;
+    tracing::info!("Server running on port. {}", listener.local_addr().unwrap());
+
     axum::serve(listener, app).await?;
 
     Ok(())
